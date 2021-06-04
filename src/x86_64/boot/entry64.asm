@@ -1,6 +1,5 @@
-video_mem: equ 0xb8000
-
 global long_mode_start
+extern kernel_main
 
 section .text
 bits 64
@@ -13,7 +12,6 @@ long_mode_start:
 	mov fs, ax
 	mov gs, ax
 
-	;print 'ok'
-	mov dword [video_mem], 0x2f4b2f4f ; 'OK'
+	call kernel_main
 	hlt
 
