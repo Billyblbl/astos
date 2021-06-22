@@ -1,13 +1,19 @@
+#ifndef GMAIN
+# define GMAIN
+
+#include <types.cpp>
 
 extern "C" void kernel_main() {
 
-	volatile unsigned short*	buffer = (unsigned short*)0xb8000;
+	volatile u16*	buffer = (u16*)0xb8000;
 
-	unsigned char fg = 0;
-	unsigned char bg = 10;
-	unsigned char color = fg | bg << 4;
+	u8 fg = 0;	//black
+	u8 bg = 10;	//green
+	u8 color = fg | bg << 4;
 
-	buffer[0] = (unsigned short)'O' | (unsigned short) (color << 8);
-	buffer[1] = (unsigned short)'K' | (unsigned short) (color << 8);
+	buffer[0] = (u16)'O' | (u16) (color << 8);
+	buffer[1] = (u16)'K' | (u16) (color << 8);
 
 }
+
+#endif
