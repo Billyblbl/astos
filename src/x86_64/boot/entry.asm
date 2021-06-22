@@ -8,6 +8,7 @@ long_mode_flag: equ (1 << 8)
 paging_bit: equ (1 << 31)
 
 global start
+global gdt64.description_structure
 extern long_mode_start
 
 section .text
@@ -23,7 +24,7 @@ start:
 	call setup_page_tables
 	call enable_paging
 
-	lgdt [gdt64.pointer] ; load descriptor table
+	lgdt [gdt64.description_structure] ; load descriptor table
 
 	jmp gdt64.code_segment:long_mode_start ;load code segment into code selector & jump to 64bit entry
 
@@ -155,15 +156,16 @@ stack_top:
 
 section .rodata
 ; global descriptor table
-; not much purpose because of the virtual tables but needed to pass in 64 bit mode
+; not much purpose because of the virtual tables (why?) but needed to pass in 64 bit mode
 executable_flag: equ 1 << 43
 code_and_data_segment: equ 1 << 44
 present_flag: equ 1 << 47
 b64_flag: equ 1 << 53
+
 gdt64:
 	dq 0 ; zero entry
 .code_segment: equ $ - gdt64
 	dq executable_flag | code_and_data_segment | present_flag | b64_flag ; code segment
-.pointer:
+.description_structure:
 	dw $ - gdt64 - 1
 	dq gdt64

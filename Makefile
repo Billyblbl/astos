@@ -1,6 +1,12 @@
 kernelcpp_main := src/kernel/main.cpp
 kernelcppo := build/x86_64/kernelcpp.o
-kernelcpp_flags := -ffreestanding -fno-exceptions -fno-rtti -Wall -Wextra
+kernelcpp_flags :=	\
+	-ffreestanding	\
+	-fno-exceptions	\
+	-fno-rtti		\
+	-Wall			\
+	-Wextra			\
+	-std=c++2a		\
 
 x86_64_asm := $(shell find src/x86_64/boot -name *.asm)
 x86_64_asm_obj := $(patsubst src/x86_64/boot/%.asm, build/x86_64/%.o, $(x86_64_asm))
@@ -13,14 +19,10 @@ build-x86_64 : $(x86_64_asm_obj) $(kernelcppo)
 
 $(kernelcppo) : $(shell find src/kernel -name *.cpp) $(shell find src/x86_64 -name *.cpp)
 	mkdir -p $(dir $@) && \
-	x86_64-elf-g++ -c -I src/kernel -I src/x86_64 $(kernelcpp_flags) $(kernelcpp_main) -o $@
+	x86_64-elf-g++ -c -I src $(kernelcpp_flags) $(kernelcpp_main) -o $@
 
 $(x86_64_asm_obj) : build/x86_64/%.o : src/x86_64/boot/%.asm
 	mkdir -p $(dir $@) && \
 	nasm -f elf64 $(patsubst src/x86_64/%.o, build/x86_64/%.asm, $^) -o $@
 
 .PHONY: build-x86_64
-
-
-
-
