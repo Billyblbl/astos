@@ -13,7 +13,7 @@ struct firstOfBitSizeHelper<bitCount, void> {
 
 template<unsigned bitCount, typename First, typename... Types>
 struct firstOfBitSizeHelper {
-	using Type = typename conditional<sizeof(First) == bitCount / 8,
+	using Type = typename conditional<  (sizeof(First) == bitCount / 8),
 		First,
 		typename firstOfBitSizeHelper<bitCount, Types...>::Type
 	>::type;

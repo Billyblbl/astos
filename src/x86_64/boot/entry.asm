@@ -1,11 +1,11 @@
-video_mem: equ 0xb8000
-multiboot2_loaded: equ 0x36d76289
-support_extended_processor_info: equ 0x80000000
-long_mode_bit: equ (1 << 29)
-physical_address_extension_flag: equ (1 << 5)
-long_mode_magic_value: equ 0xC0000080
-long_mode_flag: equ (1 << 8)
-paging_bit: equ (1 << 31)
+VIDEO_MEM: equ 0xb8000
+MULTIBOOT2_LOADED: equ 0x36d76289
+SUPPORT_EXTENDED_PROCESSOR_INFO: equ 0x80000000
+LONG_MODE_BIT: equ (1 << 29)
+PHYSICAL_ADDRESS_EXTENSION_FLAG: equ (1 << 5)
+LONG_MODE_MAGIC_VALUE: equ 0xC0000080
+LONG_MODE_FLAG: equ (1 << 8)
+PAGING_BIT: equ (1 << 31)
 
 global start
 global gdt64.description_structure
@@ -29,7 +29,7 @@ start:
 	jmp gdt64.code_segment:long_mode_start ;load code segment into code selector & jump to 64bit entry
 
 check_multiboot: ; eax should contain a magic number if we were loaded by multiboot accordingly
-	cmp eax, multiboot2_loaded
+	cmp eax, MULTIBOOT2_LOADED
 	jne .no_multiboot
 	ret
 .no_multiboot:
@@ -61,14 +61,15 @@ check_cpuid: ;attempt to flip cpuid flag register to verify cpuid supported
 check_long_mode:
 
 	; check if support extended processor info
-	mov eax, support_extended_processor_info
+	mov eax, SUPPORT_EXTENDED_PROCESSOR_INFO
 	cpuid ; store a result value in eax
-	cmp eax, support_extended_processor_info+1
+	cmp eax, SUPPORT_EXTENDED_PROCESSOR_INFO+1
 	jb .no_long_mode
 
-	mov eax, support_extended_processor_info+1
+	; with extended processor info we can check if long mode is possible
+	mov eax, SUPPORT_EXTENDED_PROCESSOR_INFO+1
 	cpuid ; store result value in edx
-	test edx, long_mode_bit ; test long mode bit in result
+	test edx, LONG_MODE_BIT ; test long mode bit in result
 	jz .no_long_mode
 
 	ret
@@ -116,28 +117,28 @@ enable_paging:
 
 	; enable physical address extension flag
 	mov eax, cr4
-	or eax, physical_address_extension_flag
+	or eax, PHYSICAL_ADDRESS_EXTENSION_FLAG
 	mov cr4, eax
 
 	; enable long mode
-	mov ecx, long_mode_magic_value
+	mov ecx, LONG_MODE_MAGIC_VALUE
 	rdmsr		; load efer into eax
-	or eax, long_mode_flag ; enable long mode flag
+	or eax, LONG_MODE_FLAG ; enable long mode flag
 	wrmsr		; write back to efer from eax
 
 	;enable paging
 	mov eax, cr0
-	or eax, paging_bit
+	or eax, PAGING_BIT
 	mov cr0, eax
 
 	ret
 
 error: ; Expect error character in al
 	;print "ERR: X" with X = error character
-	mov dword [video_mem], 0x4f524f45
-	mov dword [video_mem+4], 0x4f3a4f52
-	mov dword [video_mem+8], 0x4f204f20
-	mov byte [video_mem+10], al
+	mov dword [VIDEO_MEM], 0x4f524f45
+	mov dword [VIDEO_MEM+4], 0x4f3a4f52
+	mov dword [VIDEO_MEM+8], 0x4f204f20
+	mov byte [VIDEO_MEM+10], al
 	hlt
 
 section .bss
@@ -157,15 +158,15 @@ stack_top:
 section .rodata
 ; global descriptor table
 ; not much purpose because of the virtual tables (why?) but needed to pass in 64 bit mode
-executable_flag: equ 1 << 43
-code_and_data_segment: equ 1 << 44
-present_flag: equ 1 << 47
-b64_flag: equ 1 << 53
+EXECUTABLE_FLAG: equ 1 << 43
+CODE_AND_DATA_SEGMENT: equ 1 << 44
+PRESENT_FLAG: equ 1 << 47
+b64_FLAG: equ 1 << 53
 
 gdt64:
 	dq 0 ; zero entry
 .code_segment: equ $ - gdt64
-	dq executable_flag | code_and_data_segment | present_flag | b64_flag ; code segment
+	dq EXECUTABLE_FLAG | CODE_AND_DATA_SEGMENT | PRESENT_FLAG | b64_FLAG ; code segment
 .description_structure:
 	dw $ - gdt64 - 1
 	dq gdt64
